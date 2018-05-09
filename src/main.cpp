@@ -2,9 +2,9 @@
 * ESP32 Total test
 * Touch pin ==> Touch0 is T0 which is on GPIO 4 (D4).
 * LED pin   ==> D2
-* 
 * Headcrab 180504
 *****************************************************/
+
 #include <WiFi.h>
 #include <WiFiClient.h>
 #include <BlynkSimpleEsp32.h>
