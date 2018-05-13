@@ -1,24 +1,42 @@
-/***************************************************** 
-* ESP32 Total test
-* Touch pin ==> Touch0 is T0 which is on GPIO 4 (D4).
-* LED pin   ==> D2
+/********************************************************* 
+* ESP32, ESP8266(ESP-01S) Blynk total test
+* Touch pin 1   ==> Touch0 is T0 which is on GPIO 4 (D4).
+* Touch pin 2   ==> Touch6 is T6 which is on GPIO 21 (D14).
+* LED pin       ==> D2
 * Headcrab 180504
-*****************************************************/
+**********************************************************/
 
+#if defined(ESP32)
 #include <WiFi.h>
 #include <WiFiClient.h>
 #include <BlynkSimpleEsp32.h>
+#endif
 
-//char auth[] = "f1db0927b6a64509ad87b6487e125d9d";
-char auth[] = "438d5542e9a842a08674d13101a21825";
-char ssid[] = "Redme";
-char pass[] = "Gogogo1!";
+#if defined (ESP8266)
+#include <ESP8266WiFi.h>
+#include <BlynkSimpleEsp8266.h>
+#endif
 
-#define TOUCH_PIN0 T0 // GPIO4
-#define TOUCH_PIN6 T6 // GPIO21
+//char auth_second[] = "f1db0927b6a64509ad87b6487e125d9d";
+char auth_first[] = "438d5542e9a842a08674d13101a21825";
+char ssid_mobile[] = "Redme";
+char pass_mobile[] = "Gogogo1!";
+char ssid_home[] = "3507260";
+char pass_home[] = "Jw2Cckq8";
+
+#if defined(ESP32)
+#define TOUCH_PIN0 4//T0 // GPIO4
+#define TOUCH_PIN6 21//T6 // GPIO21
+#endif
+
 #define LED_PIN 2
-int touch_value = 100;
+#define ENC_A 0
+#define ENC_B 2
 
+BlynkTimer timer;
+
+#if defined(ESP32)
+int touch_value = 100;
 int freq = 50;
 int channel = 0;
 int resolution = 8;
@@ -26,33 +44,66 @@ int dutyCycle = 21;
 
 void gotTouch0();
 void gotTouch6();
+void send_cpu_temperature(); // blynk V5
+#endif
 
-BLYNK_READ(V3)
-{
-  Blynk.virtualWrite(V3,temperatureRead());
-}
+void got_enc_a_rise();
+void got_enc_b_rise();
+void got_enc_a_fall();
+void got_enc_b_fall();
 
-
-void setup()
-{
-  Blynk.begin(auth,ssid,pass);
+void setup(){
+//  Blynk.begin(auth_first,ssid_mobile,pass_mobile);
+  Blynk.begin(auth_first,ssid_home,pass_home);
   Serial.begin(9600);
   delay(1000); 
   Serial.println("ESP32 Touch Test");
+
+#if defined(ESP32)
+  timer.setInterval(1000L,send_cpu_temperature);
   ledcSetup(channel, freq, resolution);
   ledcAttachPin(LED_PIN, channel);
   
   touchAttachInterrupt(TOUCH_PIN0, gotTouch0, resolution);
   touchAttachInterrupt(TOUCH_PIN6, gotTouch6, resolution);
+#endif
+
+  pinMode(ENC_A,INPUT);
+  pinMode(ENC_B,INPUT);
+  attachInterrupt(ENC_A,got_enc_a_rise,RISING);
+  attachInterrupt(ENC_B,got_enc_b_rise,RISING);
+//  pinMode(LED_BUILTIN, OUTPUT);
 
 }
 
-void loop()
-{
+void loop(){
   Blynk.run();
-  ledcWrite(channel, 0);
+
+#if defined(ESP32)
+  ledcWrite(channel, 255);
+#endif
+
   delay(10);
 }
+
+// Blynk **********************************************************************
+
+#if defined(ESP32)
+
+// blynk PUSH
+void send_cpu_temperature(){
+  Blynk.virtualWrite(V0, temperatureRead());
+  //Serial.write((int)t);
+  //Serial.write("\n");
+}
+
+// blynk PULL
+BLYNK_READ(V0){
+  Blynk.virtualWrite(V5,temperatureRead());
+}
+
+
+// Touch **********************************************************************
 
 void gotTouch0(){
   int t = touchRead(TOUCH_PIN0);
@@ -64,4 +115,36 @@ void gotTouch6(){
   int t = touchRead(TOUCH_PIN6);
   Serial.println("Touch6 - ");
   Serial.println(t);
+}
+
+#endif
+
+// Encoder ********************************************************************
+
+void got_enc_a_rise(){
+  detachInterrupt(ENC_A);
+  Serial.println("Encoder A");
+  attachInterrupt(ENC_A,got_enc_a_fall,FALLING);
+  delay(10);
+}
+
+void got_enc_b_rise(){
+  detachInterrupt(ENC_B);
+  Serial.println("Encoder B");
+  attachInterrupt(ENC_B,got_enc_b_fall,FALLING);
+  delay(10);
+}
+
+void got_enc_a_fall(){
+  detachInterrupt(ENC_A);
+  Serial.println("Encoder A fall");
+  attachInterrupt(ENC_A,got_enc_a_rise,RISING);
+  delay(10);
+}
+
+void got_enc_b_fall(){
+  detachInterrupt(ENC_B);
+  Serial.println("Encoder B fall");
+  attachInterrupt(ENC_B,got_enc_b_rise,RISING);
+  delay(10);
 }
