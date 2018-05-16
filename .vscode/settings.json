@@ -3,5 +3,9 @@
         "PATH": "/home/alex/.platformio/penv/bin:/home/alex/.platformio/penv:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin",
         "PLATFORMIO_CALLER": "vscode"
     },
-    "C_Cpp.dimInactiveRegions": false
+   "arduino.path": "/home/alex/Загрузки/arduino-1.8.5-linux64/arduino-1.8.5",
+   "arduino.commandPath": "run-arduino.bat",
+   "arduino.additionalUrls": "",
+   "arduino.logLevel": "info",
+   "arduino.enableUSBDetection": true
 }

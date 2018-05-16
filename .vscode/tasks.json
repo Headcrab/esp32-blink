@@ -10,7 +10,11 @@
             ],
             "problemMatcher": [
                 "$platformio"
-            ]
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
         }
     ]
 }

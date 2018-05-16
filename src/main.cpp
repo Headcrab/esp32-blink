@@ -17,6 +17,62 @@
 #include <BlynkSimpleEsp8266.h>
 #endif
 
+class Encoder{
+  public:
+    Encoder(){};
+    Encoder(void (*)(), uint8_t pin_a, uint8_t pin_b, uint8_t pin_button=255)
+      :pin_a_(pin_a), pin_b_(pin_b), pin_button_(pin_button)
+    {
+      pinMode(pin_a_, INPUT);
+      pinMode(pin_b_, INPUT);
+      if(pin_button_!=255) pinMode(pin_button_, INPUT);
+    };
+
+    begin(){
+      //attachInterrupt(pin_a_,got_enc_a_rise,RISING);
+      //attachInterrupt(pin_b_,got_enc_b_rise,RISING);
+    };
+ 
+    void (*value_change)();
+
+  private:
+    uint8_t pin_a_;
+    uint8_t pin_b_;
+    uint8_t pin_button_;
+
+    void got_enc_a_rise(){
+      detachInterrupt(pin_a_);
+      if(value_change) value_change();
+      Serial.println("got_enc_a_rise");
+      delay(10);
+      attachInterrupt(pin_a_,got_enc_a_fall,FALLING);
+    }
+
+    void got_enc_a_fall(){
+      detachInterrupt(pin_a_);
+      if(value_change) value_change();
+      Serial.println("got_enc_a_fall");
+      delay(10);
+      attachInterrupt(pin_a_,got_enc_a_rise,RISING);
+    }
+
+    void got_enc_b_rise(){
+      detachInterrupt(pin_b_);
+      if(value_change) value_change();
+      Serial.println("got_enc_b_rise");
+      delay(10);
+      attachInterrupt(pin_b_,got_enc_b_fall,FALLING);
+    }
+
+    void got_enc_b_fall(){
+      detachInterrupt(pin_b_);
+      if(value_change) value_change();
+      Serial.println("got_enc_b_fall");
+      delay(10);
+      attachInterrupt(pin_b_,got_enc_b_rise,RISING);
+    }
+};
+
 //char auth_second[] = "f1db0927b6a64509ad87b6487e125d9d";
 char auth_first[] = "438d5542e9a842a08674d13101a21825";
 char ssid_mobile[] = "Redme";
@@ -47,14 +103,18 @@ void gotTouch6();
 void send_cpu_temperature(); // blynk V5
 #endif
 
-void got_enc_a_rise();
-void got_enc_b_rise();
-void got_enc_a_fall();
-void got_enc_b_fall();
+// void got_enc_a_rise();
+// void got_enc_b_rise();
+// void got_enc_a_fall();
+// void got_enc_b_fall();
+
+void encoder_changed();
+Encoder enc(encoder_changed,ENC_A,ENC_B);
 
 void setup(){
-//  Blynk.begin(auth_first,ssid_mobile,pass_mobile);
-  Blynk.begin(auth_first,ssid_home,pass_home);
+  // Blynk.begin(auth_first,ssid_mobile,pass_mobile);
+  Blynk.begin(auth_first,ssid_mobile,pass_mobile);
+  enc.begin();
   Serial.begin(9600);
   delay(1000); 
   Serial.println("ESP32 Touch Test");
@@ -68,10 +128,10 @@ void setup(){
   touchAttachInterrupt(TOUCH_PIN6, gotTouch6, resolution);
 #endif
 
-  pinMode(ENC_A,INPUT);
-  pinMode(ENC_B,INPUT);
-  attachInterrupt(ENC_A,got_enc_a_rise,RISING);
-  attachInterrupt(ENC_B,got_enc_b_rise,RISING);
+  // pinMode(ENC_A,INPUT);
+  // pinMode(ENC_B,INPUT);
+  // attachInterrupt(ENC_A,got_enc_a_rise,RISING);
+  // attachInterrupt(ENC_B,got_enc_b_rise,RISING);
 //  pinMode(LED_BUILTIN, OUTPUT);
 
 }
@@ -121,30 +181,34 @@ void gotTouch6(){
 
 // Encoder ********************************************************************
 
-void got_enc_a_rise(){
-  detachInterrupt(ENC_A);
-  Serial.println("Encoder A");
-  attachInterrupt(ENC_A,got_enc_a_fall,FALLING);
-  delay(10);
+void encoder_changed(){
+  Serial.println("encoder_changed");
 }
 
-void got_enc_b_rise(){
-  detachInterrupt(ENC_B);
-  Serial.println("Encoder B");
-  attachInterrupt(ENC_B,got_enc_b_fall,FALLING);
-  delay(10);
-}
+// void got_enc_a_rise(){
+//   detachInterrupt(ENC_A);
+//   Serial.println("Encoder A");
+//   attachInterrupt(ENC_A,got_enc_a_fall,FALLING);
+//   delay(10);
+// }
 
-void got_enc_a_fall(){
-  detachInterrupt(ENC_A);
-  Serial.println("Encoder A fall");
-  attachInterrupt(ENC_A,got_enc_a_rise,RISING);
-  delay(10);
-}
+// void got_enc_b_rise(){
+//   detachInterrupt(ENC_B);
+//   Serial.println("Encoder B");
+//   attachInterrupt(ENC_B,got_enc_b_fall,FALLING);
+//   delay(10);
+// }
 
-void got_enc_b_fall(){
-  detachInterrupt(ENC_B);
-  Serial.println("Encoder B fall");
-  attachInterrupt(ENC_B,got_enc_b_rise,RISING);
-  delay(10);
-}
+// void got_enc_a_fall(){
+//   detachInterrupt(ENC_A);
+//   Serial.println("Encoder A fall");
+//   attachInterrupt(ENC_A,got_enc_a_rise,RISING);
+//   delay(10);
+// }
+
+// void got_enc_b_fall(){
+//   detachInterrupt(ENC_B);
+//   Serial.println("Encoder B fall");
+//   attachInterrupt(ENC_B,got_enc_b_rise,RISING);
+//   delay(10);
+// }
