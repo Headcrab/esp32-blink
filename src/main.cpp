@@ -5,6 +5,8 @@
 * LED pin       ==> D2
 * Headcrab 180504
 **********************************************************/
+#include <functional>
+//#include "FunctionalInterrupts.h"
 
 #if defined(ESP32)
 #include <WiFi.h>
@@ -17,6 +19,15 @@
 #include <BlynkSimpleEsp8266.h>
 #endif
 
+/*********************************************************
+ * Class Encoder operates encoders attachet to the board
+ * 
+ * Headcrab 180516 
+*********************************************************/ 
+
+class Encoder;
+void got_enc_a_rise(Encoder*);
+
 class Encoder{
   public:
     Encoder(){};
@@ -28,8 +39,10 @@ class Encoder{
       if(pin_button_!=255) pinMode(pin_button_, INPUT);
     };
 
-    begin(){
-      //attachInterrupt(pin_a_,got_enc_a_rise,RISING);
+    void begin(){
+      attachInterrupt(pin_a_, std::bind(got_enc_a_rise, &this), RISING);
+      // attachInterrupt(pin_a_, []{got_enc_a_rise();}, RISING);
+      // attachInterrupt(pin_a_, &fn, RISING);
       //attachInterrupt(pin_b_,got_enc_b_rise,RISING);
     };
  
@@ -40,38 +53,35 @@ class Encoder{
     uint8_t pin_b_;
     uint8_t pin_button_;
 
-    void got_enc_a_rise(){
-      detachInterrupt(pin_a_);
-      if(value_change) value_change();
-      Serial.println("got_enc_a_rise");
-      delay(10);
-      attachInterrupt(pin_a_,got_enc_a_fall,FALLING);
-    }
+    // void got_enc_a_fall(){
+    //   detachInterrupt(pin_a_);
+    //   if(value_change) value_change();
+    //   Serial.println("got_enc_a_fall");
+    //   attachInterrupt(pin_a_,std::bind(&Encoder::got_enc_a_rise),RISING);
+    // }
 
-    void got_enc_a_fall(){
-      detachInterrupt(pin_a_);
-      if(value_change) value_change();
-      Serial.println("got_enc_a_fall");
-      delay(10);
-      attachInterrupt(pin_a_,got_enc_a_rise,RISING);
-    }
+    // void got_enc_b_rise(){
+    //   detachInterrupt(pin_b_);
+    //   if(value_change) value_change();
+    //   Serial.println("got_enc_b_rise");
+    //   attachInterrupt(pin_b_,std::bind(&Encoder::got_enc_b_fall),FALLING);
+    // }
 
-    void got_enc_b_rise(){
-      detachInterrupt(pin_b_);
-      if(value_change) value_change();
-      Serial.println("got_enc_b_rise");
-      delay(10);
-      attachInterrupt(pin_b_,got_enc_b_fall,FALLING);
-    }
-
-    void got_enc_b_fall(){
-      detachInterrupt(pin_b_);
-      if(value_change) value_change();
-      Serial.println("got_enc_b_fall");
-      delay(10);
-      attachInterrupt(pin_b_,got_enc_b_rise,RISING);
-    }
+    // void got_enc_b_fall(){
+    //   detachInterrupt(pin_b_);
+    //   if(value_change) value_change();
+    //   Serial.println("got_enc_b_fall");
+    //   attachInterrupt(pin_b_,std::bind(&Encoder::got_enc_b_rise),RISING);
+    // }
 };
+
+void got_enc_a_rise(Encoder* temp_encoder){
+//      detachInterrupt(pin_a_);
+  if(temp_encoder->value_change) temp_encoder->value_change();
+  Serial.println("got_enc_a_rise");
+  //auto fn = &Encoder::got_enc_a_rise;
+//      attachInterrupt(pin_a_, std::bind(&Encoder::got_enc_a_rise,this), FALLING);
+}
 
 //char auth_second[] = "f1db0927b6a64509ad87b6487e125d9d";
 char auth_first[] = "438d5542e9a842a08674d13101a21825";
